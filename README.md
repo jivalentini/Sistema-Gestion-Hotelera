@@ -1,23 +1,32 @@
-# tp-disenio-2025-grupo-28
+# Sistema de Gestión Hotelera
 
+Proyecto académico desarrollado para la materia **Diseño de Sistemas** de la carrera Ingeniería en Sistemas de Información.
 
-## Instalar Maven (mvn)
+El sistema modela la gestión completa de un hotel, incluyendo administración de habitaciones, huéspedes, reservas y facturación.
 
-[Instalar Maven en WIndows 10/11](https://www.youtube.com/watch?v=B5dn6DL6_Qk)
+## Tecnologías / Herramientas
 
-### Docs
+- UML
+- Análisis y Diseño de Sistemas
+- Modelado de Casos de Uso
+- Diagramas de Clases
+- Diagramas de Secuencia
 
- https://start.spring.io/
+## Funcionalidades
 
-### configuration
+- Gestión de habitaciones por categoría
+- Registro de huéspedes y acompañantes
+- Gestión de reservas
+- Administración de estadías
+- Registro de consumos
+- Generación de facturación
+- Manejo de facturas tipo A y tipo B
 
- - copy the .env.example file and rename to .env
- - replace the DB_PASSWORD value
+## Objetivo del proyecto
 
-### install the project
-> mvn clean install -DskipTests
+Aplicar técnicas de análisis y diseño de sistemas para modelar un sistema real de gestión hotelera.
 
-### start the project
+## Autor
 
-> mvn spring-boot:run
-
+Joaquin Valentini  
+Estudiante de Ingeniería en Sistemas de Información
