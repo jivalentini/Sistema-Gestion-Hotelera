@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/Base :: head('Ocupar Habitacion')}"></head>
+
+  <body>
+    <div class="container-md my-5">
+      <h1>
+        Seleccionar Ocupantes - Habitación N°
+        <span th:text="${numeroHabitacion}">--</span>
+      </h1>
+
+      <!-- Mensaje error -->
+      <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <p th:text="${errorMessage}"></p>
+      </div>
+
+      <!-- Mensaje éxito -->
+      <div th:if="${successMessage}" class="alert alert-success" role="alert">
+        <p th:text="${successMessage}"></p>
+      </div>
+
+      <!-- RESPONSABLE CARGADO -->
+      <div class="row">
+        <label>Estado de la Habitación</label>
+
+        <div>
+          <p class="fw-bold">Responsable:</p>
+          <p
+            th:text="${huespedCargado != null ? huespedCargado.nombre + ', ' + huespedCargado.apellido + ', DNI: ' + huespedCargado.documento : '-'}"
+          ></p>
+        </div>
+      </div>
+
+      <!-- ACOMPAÑANTES CARGADOS -->
+      <div class="row">
+        <label>Ocupantes Asignados:</label>
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Apellido</th>
+              <th>Tipo de documento</th>
+              <th>Número de documento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="ocupante, estado : ${ocupantesCargados}">
+              <td th:text="${#strings.toUpperCase(ocupante.nombre)}"></td>
+              <td th:text="${#strings.toUpperCase(ocupante.apellido)}"></td>
+              <td th:text="${#strings.toUpperCase(ocupante.tipoDocumento)}"></td>
+              <td th:text="${#strings.toUpperCase(ocupante.documento)}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(ocupantesCargados)}">
+              <td colspan="4">No hay ocupantes asignados.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="row">
+        <div>
+          <!-- Seguir cargando: volver a la selección de la misma habitación (paso anterior) -->
+          <form method="get" style="display: inline">
+            <input type="hidden" name="reservaId" th:value="${reservaId}" />
+            <input type="hidden" name="estadiaId" th:value="${estadiaId}" />
+            <input
+              type="hidden"
+              name="numeroHabitacion"
+              th:value="${numeroHabitacion}"
+            />
+            <input type="hidden" name="fechaDesde" th:value="${fechaDesde}" />
+            <input type="hidden" name="fechaHasta" th:value="${fechaHasta}" />
+
+            <div class="col-auto">
+              <button
+                type="submit"
+                class="btn btn-primary mb-3"
+                th:formaction="@{/ocupacion/cargar}"
+              >
+                SEGUIR CARGANDO
+              </button>
+            </div>
+          </form>
+          <!-- cargar otra habitacion: vuelve a habitacion/validar-fecha -->
+          <form
+            th:action="@{/ocupacion/limpiar-ocupantes-y-validar}"
+            method="post"
+            style="display: inline"
+          >
+            <input type="hidden" name="reservaId" th:value="${reservaId}" />
+            <input type="hidden" name="estadiaId" th:value="${estadiaId}" />
+            <input
+              type="hidden"
+              name="numeroHabitacion"
+              th:value="${numeroHabitacion}"
+            />
+            <input type="hidden" name="modo" value="ocupar" />
+            <input
+              type="hidden"
+              name="fechaDesde"
+              th:value="${#dates.format(fechaDesde, 'yyyy-MM-dd')}"
+            />
+            <input
+              type="hidden"
+              name="fechaHasta"
+              th:value="${#dates.format(fechaHasta, 'yyyy-MM-dd')}"
+            />
+
+            <div class="col-auto">
+              <button type="submit" class="btn btn-primary mb-3">
+                CARGAR OTRA HABITACIÓN
+              </button>
+            </div>
+          </form>
+          <div style="display: inline">
+            <!-- salir: redirige al index -->
+            <div class="col-auto">
+              <a th:href="@{/}" class="btn btn-primary mb-3"> SALIR </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div th:replace="~{fragments/Base :: scripts}"></div>
+  </body>
+</html>

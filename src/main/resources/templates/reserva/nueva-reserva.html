@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>CU04 - Reservar Habitación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+    <h4>Reservar Habitación</h4>
+
+    <!-- ================= RESERVA SOLICITADA ================= -->
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white">
+            Reserva solicitada
+        </div>
+        <div class="card-body">
+
+        <!--  <p>✔ <strong>Tipo de habitación:</strong><span th:text="${reservaRequestDTO.tipoHabitacion}"></span> </p>-->
+<ul>
+    <li th:each="hab : ${reservaRequestDTO.habitaciones}">
+        Habitación 
+        <span th:text="${hab.numeroHabitacion}">NRO</span>
+        -
+        <span th:text="${habitacionTipoMap[hab.numeroHabitacion]}">TIPO</span>
+    </li>
+</ul>
+            <p>
+                <strong>Ingreso:</strong>
+                <span th:text="${#dates.format(reservaRequestDTO.fechaDesde,'EEEE dd/MM/yyyy')}"></span>,
+                12 hs
+            </p>
+
+            <p>
+                <strong>Egreso:</strong>
+                <span th:text="${#dates.format(reservaRequestDTO.fechaHasta,'EEEE dd/MM/yyyy')}"></span>,
+                10 hs
+            </p>
+
+            <button id="btnAceptar" class="btn btn-success">
+                Aceptar
+            </button>
+
+            <a th:href="@{/habitacion}" class="btn btn-outline-danger">
+                Cancelar
+            </a>
+        </div>
+    </div>
+
+    <!-- ================= FORMULARIO ================= -->
+    <form th:action="@{/reserva/crear}"
+          th:object="${reservaRequestDTO}"
+          method="post">
+
+        <!-- datos ocultos -->
+        <input type="hidden" th:field="*{fechaDesde}">
+        <input type="hidden" th:field="*{fechaHasta}">
+        <input type="hidden" th:field="*{tipoHabitacion}">
+
+        <div id="datosReserva"
+             class="card"
+             th:classappend="${errorMessage != null} ? '' : 'd-none'">
+
+            <div class="card-header">
+                Datos de la reserva
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <label>Apellido (*)</label>
+                    <input id="apellido"
+                           class="form-control"
+                           th:field="*{apellido}">
+                </div>
+
+                <div class="mb-3">
+                    <label>Nombre (*)</label>
+                    <input id="nombre"
+                           class="form-control"
+                           th:field="*{nombre}">
+                </div>
+
+                <div class="mb-3">
+                    <label>Teléfono (*)</label>
+                    <input id="telefono"
+                           class="form-control"
+                           th:field="*{telefono}">
+                </div>
+
+                <button class="btn btn-success">
+                    Aceptar
+                </button>
+
+                <a th:href="@{/habitacion}"
+                   class="btn btn-outline-secondary">
+                    Cancelar
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- ================= MODAL ERROR ================= -->
+<div class="modal fade" id="errorModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5>Error</h5>
+            </div>
+            <div class="modal-body">
+                <p th:text="${errorMessage}"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-bs-dismiss="modal">
+                    Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+    document.getElementById("btnAceptar").onclick = () => {
+        document.getElementById("datosReserva").classList.remove("d-none");
+        document.getElementById("apellido").focus();
+    };
+
+    const hasError = [[${errorMessage != null}]];
+    if (hasError) {
+        new bootstrap.Modal(
+            document.getElementById("errorModal")
+        ).show();
+
+        const focusField = '[[${focusField}]]';
+        if (focusField) {
+            document.getElementById(focusField).focus();
+        }
+    }
+
+    document.querySelectorAll("input").forEach(i =>
+        i.addEventListener("input", () =>
+            i.value = i.value.toUpperCase()
+        )
+    );
+
+    document.querySelectorAll("input[type='text']").forEach(i =>
+        i.addEventListener("input", () =>
+            i.value = i.value.toUpperCase()
+        )
+    );
+</script>
+
+</body>
+</html>

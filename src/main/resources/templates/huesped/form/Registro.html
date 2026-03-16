@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/Base :: head('Dar de Alta Huésped')"></head>
+
+<body>
+  <div class="container-md my-5">
+    <h1 class="text-center mb-4">Hotel Premier - Dar de Alta Huésped</h1>
+
+    <!-- Mensaje de error -->
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+      <p th:text="${errorMessage}">Validation Error Message</p>
+    </div>
+
+    <!-- Formulario -->
+    <form th:action="@{/huesped/new}" th:object="${huesped}" method="post" class="needs-validation mx-5" novalidate>
+      <div class="row g-4">
+
+        <!-- Columna izquierda -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Nombre <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{nombre}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Tipo de documento <span class="text-danger">*</span></label>
+            <select class="form-select" th:field="*{tipoDocumento}" required>
+                <option value="" disabled selected>Seleccione un tipo</option>
+                <option th:each="tipo : ${tiposDocumento}" th:value="${tipo}" th:text="${tipo}">
+                </option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">CUIT</label>
+            <input type="text" class="form-control" th:field="*{cuit}">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Fecha de nacimiento <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" th:field="*{fechaNacimiento}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Dirección <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{direccion.direccion}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Código Postal <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{direccion.localidad.codigo_postal}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Provincia <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{direccion.localidad.provincia.nombre}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Teléfono <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{telefono}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Nacionalidad <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{direccion.nacionalidad}" required>
+          </div>
+        </div>
+
+        <!-- Columna derecha -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Apellido <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{apellido}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Número de documento <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{documento}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Posición frente al IVA</label>
+            <select class="form-select" th:field="*{posicionFrenteAlIva}">
+              <option value="CONSUMIDOR_FINAL">Consumidor final (por omisión)</option>
+              <option value="MONOTRIBUTO">Monotributista</option>
+              <option value="RESPONSABLE_INSCRIPTO">Responsable inscripto</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Número / Depto / Piso</label>
+            <div class="row g-2">
+              <div class="col-md-4">
+                <input type="text" class="form-control" th:field="*{direccion.numero}" placeholder="Número" required>
+              </div>
+              <div class="col-md-4">
+                <input type="text" class="form-control" th:field="*{direccion.depto}" placeholder="Depto">
+              </div>
+              <div class="col-md-4">
+                <input type="text" class="form-control" th:field="*{direccion.piso}" placeholder="Piso">
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Localidad <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{direccion.localidad.nombre}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">País <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{direccion.localidad.provincia.pais.nombre}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" th:field="*{email}">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Ocupación</label>
+            <input type="text" class="form-control" th:field="*{ocupacion}">
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-primary me-2">Siguiente</button>
+        <button type="reset" class="btn btn-warning me-2">Borrar</button>
+        <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+    <div th:replace="fragments/Base :: scripts"></div>
+
+      <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      document.querySelectorAll('input[type="text"], input[type="email"], textarea')
+        .forEach(input => {
+          input.addEventListener("input", function() {
+            this.value = this.value.toUpperCase();
+          });
+        });
+    });
+  </script>
+</body>
+
+</html>

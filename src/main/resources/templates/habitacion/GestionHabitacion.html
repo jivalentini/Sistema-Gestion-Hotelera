@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/Base :: head('Gestion Habitacion')}"></head>
+
+<body th:attr="data-modo=${modo}">
+<style>
+    .bg-orange {
+        background-color: orange !important;
+        color: white !important;
+    }
+
+
+    .celda-seleccionada {
+        background-color: #0d6efd !important;
+        color: white !important;
+        border: 2px solid black !important;
+        border-radius: 4px;
+        padding: 2px 6px;
+    }
+    .estado-clickable {
+        cursor: pointer;
+    }
+#modal-no-disponible,
+#modal-no-seleccionadas,
+#modal-modo-incorrecto,
+#modal-reserva-detectada , #modal-presione-tecla  {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+
+#modal-box-nd {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+    width: 380px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+
+#modal-box-nd button {
+    width: 60%;
+    background: #1b4965;
+    color: white;
+    margin-top: 20px;
+}
+.modal-box {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        text-align: center;
+        width: 380px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+
+</style>
+
+<div class="container-md my-5">
+    <h1 class="text-center mb-4">Hotel Premier - Gestion de Habitaciones</h1>
+
+    <!-- Mensaje error -->
+<div th:if="${errorMessage}" class="alert alert-danger" role="alert"> <p th:text="${errorMessage}"></p> </div> 
+
+    <!-- Mensaje éxito -->
+    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+
+    <!-- FORM FECHAS -->
+    <form th:action="@{/habitacion/validar-fecha}" method="post"
+        class="needs-validation mx-5 row g-3" novalidate>
+        <input type="hidden" name="modo" th:value="${modo}" />
+
+        <div class="col-md-4">
+            <label class="form-label fw-bold">Fecha Desde</label>
+            <input type="date" name="fechaDesde" class="form-control"
+            th:value="${fechaDesde}" required>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-bold">Fecha Hasta</label>
+            <input type="date" name="fechaHasta" class="form-control"
+            th:value="${fechaHasta}" required>
+        </div>
+        <!--CASO DE USO 15-->
+<div th:if="${sinHabitaciones}" class="alert alert-warning"> No hay habitaciones disponibles para la búsqueda realizada.</div>
+
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary me-2">Buscar</button>
+           <!-- <a th:href="@{/habitacion}" class="btn btn-secondary">Cancelar</a> -->
+            <a th:href="@{/habitacion(modo=${modo})}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+
+    <hr class="my-4"/>
+
+    <!-- GRILLA -->
+    <hr class="my-4" /> <!-- Grilla Habitaciones --> <div class="table-responsive mt-4"> 
+        <h4 class="mb-3">Disponibilidad de Habitaciones</h4> 
+        <table class="table table-bordered text-center align-middle"> 
+            <!-- ENCABEZADO --> 
+            <thead class="table-light"> <tr> <th>Fecha</th> 
+                <!-- Iteramos tipos de habitación --> 
+                <th th:each="tipo : ${habitacionesPorTipo}"> 
+                    <div class="fw-bold" th:text="${tipo.nombre}"></div>
+                    <!-- Números de habitación en HORIZONTAL --> 
+        <div class="d-flex justify-content-center gap-2 mt-1"> 
+    <span th:each="num : ${tipo.habitaciones}" class="badge bg-primary" th:text="${num}" ></span>
+    </div> 
+    </th> 
+</tr> 
+</thead>
+<!-- CUERPO -->
+    <tbody> <tr th:each="row : ${grilla}">
+    <!-- Fecha --> 
+    <td class="fw-bold"
+    th:text="${#dates.format(row.fecha, 'dd/MM/yyyy')}"
+    th:data-fecha="${#dates.format(row.fecha,'yyyy-MM-dd')}">
+    </td>
+
+<!-- Columnas por tipo --> <td th:each="tipo : ${row.estadosPorTipo}"> 
+        <!-- ESTADOS EN HORIZONTAL --> 
+        <div class="d-flex justify-content-center gap-2">
+            <span th:each="estado, i : ${tipo.estados}" 
+                th:data-habitacion="${tipo.habitaciones[i.index]}" 
+                th:data-estado="${#strings.toLowerCase(estado)}"
+                th:class="${
+                
+                    (#strings.toLowerCase(estado) == 'disponible' ? 'badge bg-success' :
+                    #strings.toLowerCase(estado) == 'reservada'  ? 'badge bg-orange text-dark' :
+                    #strings.toLowerCase(estado) == 'ocupada'    ? 'badge bg-danger' :
+                    #strings.toLowerCase(estado) == 'mantenimiento' ? 'badge bg-warning' :
+                    'badge bg-secondary')
+                    + ' estado-clickable'
+                    }"
+                    th:text="${estado}"> 
+            </span>
+        </div>
+    </td>
+    </tr>
+</tbody>
+</table>
+</div>
+<!-- BOTONES PRINCIPALES -->
+    <div class="mt-3 text-end">
+
+        <!-- MODO RESERVAR -->
+        <div th:if="${modo == 'reservar'}">
+
+            <!-- RESERVAR FUNCIONA -->
+            <form th:action="@{/habitacion/reservar}" method="post" class="d-inline">
+                <input type="hidden" id="habitacionesInput" name="habitaciones">
+                <!--<input type="hidden" id="reservasInput" name="reservas">-->
+                <input type="hidden" id="reservasInput" name="reservasInput">
+                <input type="hidden" id="fechaDesdeSeleccionada" name="fechaDesde">
+                <input type="hidden" id="fechaHastaSeleccionada" name="fechaHasta">
+
+
+                <button type="submit" class="btn btn-success">RESERVAR</button>
+            </form>
+
+            <!-- OCUPAR → MUESTRA MODAL -->
+            <button type="button" class="btn btn-warning" onclick="abrirModalModoIncorrecto('ocupación')"> OCUPAR HABITACION</button>
+            <!-- CANCELAR -->
+    <a th:href="@{/}" class="btn btn-secondary ms-2">CANCELAR</a>
+        </div>
+
+        <!-- MODO OCUPAR -->
+        <div th:if="${modo == 'ocupar'}">
+
+            <!-- RESERVAR → MUESTRA MODAL -->
+            <button type="button" class="btn btn-success" onclick="abrirModalModoIncorrecto('reserva')"> RESERVAR </button>
+
+            <!-- OCUPAR FUNCIONA -->
+            <form th:action="@{/habitacion/ocupar}" method="post" class="d-inline">
+                <input type="hidden" id="fechaDesdeSeleccionada" name="fechaDesde">
+                <input type="hidden" id="fechaHastaSeleccionada" name="fechaHasta">
+                <input type="hidden" id="numeroHabitacionInput" name="numeroHabitacion">
+
+                <button type="submit" class="btn btn-warning">OCUPAR HABITACION</button>
+            </form>
+            <a th:href="@{/}" class="btn btn-secondary ms-2">CANCELAR</a>
+        </div>
+
+    </div>
+
+
+
+    <!-- LEYENDA -->
+    <div class="mt-4">
+        <h5>Leyenda</h5>
+        <div class="d-flex gap-4 mt-2">
+            <div><span class="badge bg-success">Disponible</span></div>
+            <div><span class="badge bg-warning text-dark">Reservada</span></div>
+            <div><span class="badge bg-danger">Ocupada</span></div>
+            <div><span class="badge bg-secondary">Fuera de Servicio</span></div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-presione-tecla">
+    <div class="modal-box">
+        <h3>Atención</h3>
+        <p>PRESIONE CUALQUIER TECLA PARA CONTINUAR…</p>
+    </div>
+</div>
+<!-- ======================== MODALES ======================== -->
+
+<!-- NO DISPONIBLE -->
+<div id="modal-no-disponible">
+    <div class="modal-box">
+        <h3>Habitación No Disponible</h3>
+        <p>Las habitaciones seleccionadas no están disponibles para el periodo indicado.</p>
+        <button onclick="cerrarModalNoDisponible()" class="btn btn-primary mt-3">Aceptar</button>
+    </div>
+</div>
+
+<!-- NO SELECCIONADAS -->
+<div id="modal-no-seleccionadas">
+    <div class="modal-box">
+        <h3>Seleccione una Habitación</h3>
+        <p>Debe seleccionar al menos una habitación para continuar.</p>
+        <button onclick="cerrarModalNoSeleccionadas()" class="btn btn-primary mt-3">Aceptar</button>
+    </div>
+</div>
+
+<!-- MODO INCORRECTO -->
+<div id="modal-modo-incorrecto">
+    <div class="modal-box">
+        <h3>Acción No Permitida</h3>
+        <p id="modal-texto-incorrecto"></p>
+        <button onclick="cerrarModalModoIncorrecto()" class="btn btn-primary mt-3">Aceptar</button>
+    </div>
+</div>
+
+<!-- RESERVA DETECTADA EN RANGO -->
+<div id="modal-reserva-detectada" >
+    <div class="modal-box">
+        <h3>La habitación tiene días reservados</h3>
+       <p th:if="${reservasDetectadas}"
+   th:text="'Reservada del ' 
+   + ${#dates.format(reservasDetectadas[0].fechaDesde,'dd/MM/yyyy')}
+   + ' al '
+   + ${#dates.format(reservasDetectadas[0].fechaHasta,'dd/MM/yyyy')}">
+</p>
+
+       <form th:action="@{/habitacion/ocupar/confirmar}" method="post">
+    <button type="submit" class="btn btn-warning mt-3">
+        OCUPAR IGUAL
+    </button>
+</form>
+
+<button class="btn btn-secondary mt-3"
+        onclick="cerrarModalReservaDetectada()">VOLVER</button>
+    </div>
+</div>
+
+<div th:replace="~{fragments/Base :: scripts}"></div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const seleccionadas = new Set();
+    const reservas = {}; // para CU04 y CU15
+
+    // =================== CLICK EN CELDAS ===================
+    document.querySelectorAll(".estado-clickable").forEach(cell => {
+        cell.addEventListener("click", () => {
+            const estado = cell.dataset.estado.trim().toLowerCase();
+            const hab = cell.dataset.habitacion;
+            const fila = cell.closest("tr");
+            const fecha = fila.querySelector("td[data-fecha]").dataset.fecha;
+
+            // === SETEAR FECHAS AUTOMÁTICAS ===
+            const desdeInput = document.getElementById("fechaDesdeSeleccionada");
+            const hastaInput = document.getElementById("fechaHastaSeleccionada");
+            if (!desdeInput.value || fecha < desdeInput.value) desdeInput.value = fecha;
+            if (!hastaInput.value || fecha > hastaInput.value) hastaInput.value = fecha;
+
+            const modo = document.body.dataset.modo; // se define <body data-modo="reservar/ocupar">
+
+            // === MODO RESERVAR ===
+            if (modo === "reservar") {
+                if (estado !== "disponible") { abrirModalNoDisponible(); return; }
+
+                // selección / deselect
+                if (cell.classList.contains("celda-seleccionada")) {
+                    cell.classList.remove("celda-seleccionada");
+                    seleccionadas.delete(hab);
+                    delete reservas[hab];
+                } else {
+                    cell.classList.add("celda-seleccionada");
+                    seleccionadas.add(hab);
+                    if (!reservas[hab]) reservas[hab] = { desde: fecha, hasta: fecha };
+                    else {
+                        if (fecha < reservas[hab].desde) reservas[hab].desde = fecha;
+                        if (fecha > reservas[hab].hasta) reservas[hab].hasta = fecha;
+                    }
+                }
+                const lista = [...seleccionadas].join(",");
+                const h1 = document.getElementById("habitacionesInput");
+                if (h1) h1.value = lista;
+                const reservasInput = document.getElementById("reservasInput");
+                if (reservasInput) reservasInput.value = JSON.stringify(reservas);
+            }
+
+            // === MODO OCUPAR ===
+            if (modo === "ocupar") {
+                // CU15: flujo alternativo: si no disponible
+                if (estado !== "disponible" && estado !== "reservada") {
+                    abrirModalNoDisponible(); 
+                    return;
+                }
+                  // si ya hay una habitación seleccionada y es OTRA → limpiar
+    if (seleccionadas.size > 0 && !seleccionadas.has(hab)) {
+        document.querySelectorAll(".celda-seleccionada").forEach(c =>
+            c.classList.remove("celda-seleccionada")
+        );
+        seleccionadas.clear();
+    }
+
+              // selección / deselection
+                if (cell.classList.contains("celda-seleccionada")) {
+                    cell.classList.remove("celda-seleccionada");
+                   // seleccionadas.delete(hab);
+                } else {
+                    cell.classList.add("celda-seleccionada");
+                    seleccionadas.add(hab);
+                }
+
+                // actualizar input
+                document.getElementById("numeroHabitacionInput").value =
+                [...seleccionadas][0] || "";
+               /* const lista = [...seleccionadas].join(",");
+                const hNumInput = document.getElementById("numeroHabitacionInput");
+                if (hNumInput) hNumInput.value = lista;*/
+            }
+        });
+    });
+
+    // =================== VALIDAR FORMULARIOS ===================
+    // VALIDAR RESERVAR
+    const formReservar = document.querySelector("form[action='/habitacion/reservar']");
+    if (formReservar) {
+        formReservar.addEventListener("submit", evt => {
+            if (seleccionadas.size === 0) {
+                evt.preventDefault();
+                abrirModalNoSeleccionadas();
+            }
+        });
+    }
+
+    // VALIDAR OCUPAR
+    const formOcupar = document.querySelector("form[action='/habitacion/ocupar']");
+    if (formOcupar) {
+        formOcupar.addEventListener("submit", evt => {
+            if (!document.getElementById("numeroHabitacionInput").value.trim()) {
+                evt.preventDefault();
+                abrirModalNoSeleccionadas();
+            }
+        });
+    }
+});
+
+// =================== MODALES ===================
+function abrirModalModoIncorrecto(accion) {
+    const p = document.getElementById("modal-texto-incorrecto");
+    p.textContent = accion === "ocupación"
+        ? "No puede OCUPAR una habitación desde la pantalla de RESERVA."
+        : "No puede RESERVAR una habitación desde la pantalla de OCUPACIÓN.";
+    document.getElementById("modal-modo-incorrecto").style.display = "flex";
+}
+function cerrarModalModoIncorrecto() { document.getElementById("modal-modo-incorrecto").style.display = "none"; }
+
+function abrirModalNoDisponible() { document.getElementById("modal-no-disponible").style.display = "flex"; }
+function cerrarModalNoDisponible() { document.getElementById("modal-no-disponible").style.display = "none"; }
+
+function abrirModalNoSeleccionadas() { document.getElementById("modal-no-seleccionadas").style.display = "flex"; }
+function cerrarModalNoSeleccionadas() { document.getElementById("modal-no-seleccionadas").style.display = "none"; }
+
+// =================== MODAL RESERVA DETECTADA ===================
+function cerrarModalReservaDetectada() {
+    document.getElementById("modal-reserva-detectada").style.display = "none";
+}
+function confirmarOcuparIgual() {
+    // marcar habitación como seleccionada igual
+    const hab = document.getElementById("texto-reserva-detectada").textContent.match(/\d+/)[0];
+    const cell = document.querySelector(`.estado-clickable[data-habitacion='${hab}']`);
+    if (cell) cell.classList.add("celda-seleccionada");
+
+    /* fetch('/habitacion/ocupar/confirmar', {
+        method: 'POST'
+    }).then(() => {
+        window.location.reload();
+    });
+    cerrarModalReservaDetectada();*/
+}
+
+// =================== PRESIONE CUALQUIER TECLA ===================
+document.addEventListener("keydown", () => {
+    if (document.getElementById("modal-presione-tecla")) {
+        window.location.href = "/ocupacion/cargar";
+    }
+});
+
+</script>
+
+
+<script th:if="${modalReservaDetectada}">
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("modal-reserva-detectada").style.display = "flex";
+    });
+</script>
+
+<script th:if="${mostrarPresioneTecla}">
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("modal-presione-tecla").style.display = "flex";
+    });
+</script>
+
+
+</body>
+</html>
